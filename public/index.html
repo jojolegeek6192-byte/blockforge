@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlockForge — Ressources Roblox Studio</title>
+  <meta name="description" content="Boutique de modeles et ressources premium pour Roblox Studio." />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#/" class="logo" data-link>
+        <span class="logo-cube" aria-hidden="true"></span>
+        BlockForge
+      </a>
+
+      <nav class="main-nav">
+        <a href="#/" data-link>Accueil</a>
+        <a href="#/catalogue" data-link>Catalogue</a>
+        <a href="#/mes-achats" data-link class="auth-only">Mes achats</a>
+        <a href="#/dashboard" data-link class="owner-only">Dashboard</a>
+      </nav>
+
+      <div class="header-actions">
+        <span class="user-pill guest-only">
+          <a href="#/connexion" data-link class="btn btn-ghost">Connexion</a>
+          <a href="#/inscription" data-link class="btn btn-primary">Inscription</a>
+        </span>
+        <span class="user-pill auth-only" style="display:none;">
+          <span class="user-name" id="headerUserName"></span>
+          <button class="btn btn-ghost" id="logoutBtn">Deconnexion</button>
+        </span>
+      </div>
+
+      <button class="burger" id="burgerBtn" aria-label="Ouvrir le menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================== MAIN APP ROOT ===================== -->
+  <main id="app" class="app-root"></main>
+
+  <!-- ===================== TOASTS ===================== -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> BlockForge. Construit pour la communaute Roblox.</p>
+      <p class="footer-note">Site de demonstration — paiement simule, aucune transaction reelle.</p>
+    </div>
+  </footer>
+
+  <!-- ===================== TEMPLATES (clones JS) ===================== -->
+
+  <template id="tpl-home">
+    <section class="hero">
+      <canvas id="heroCanvas" class="hero-canvas"></canvas>
+      <div class="hero-overlay container">
+        <p class="hero-kicker">Ressources premium pour createurs</p>
+        <h1 class="hero-title">Donnez vie a vos mondes <span class="accent">Roblox</span></h1>
+        <p class="hero-subtitle">
+          Modeles 3D, mecaniques pretes a l'emploi et assets soignes,
+          a telecharger directement dans Roblox Studio.
+        </p>
+        <div class="hero-cta">
+          <a href="#/catalogue" data-link class="btn btn-primary btn-lg">Explorer le catalogue</a>
+          <a href="#/catalogue?filter=gratuit" data-link class="btn btn-outline btn-lg">Ressources gratuites</a>
+        </div>
+      </div>
+      <div class="scroll-hint" aria-hidden="true">
+        <span></span>
+        défiler
+      </div>
+    </section>
+
+    <section class="container section">
+      <h2 class="section-title">Pourquoi BlockForge ?</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⬡</div>
+          <h3>Fichiers prets a l'emploi</h3>
+          <p>Tous les assets sont fournis en .rbxm / .rbxmx, prets a importer directement dans Roblox Studio.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">★</div>
+          <h3>Avis verifies</h3>
+          <p>Chaque ressource est evaluee par la communaute : notes en etoiles pour choisir en confiance.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⇩</div>
+          <h3>Telechargement instantane</h3>
+          <p>Gratuit ou achete, le telechargement se declenche automatiquement, sans etape inutile.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section">
+      <div class="section-header-row">
+        <h2 class="section-title">Ressources populaires</h2>
+        <a href="#/catalogue" data-link class="link-more">Voir tout le catalogue →</a>
+      </div>
+      <div id="homeAssetGrid" class="asset-grid">
+        <p class="muted">Chargement des ressources…</p>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-catalogue">
+    <section class="container section page-header-section">
+      <h1 class="page-title">Catalogue</h1>
+      <p class="page-subtitle">Parcourez toutes les ressources disponibles pour Roblox Studio.</p>
+
+      <div class="catalogue-toolbar">
+        <input type="search" id="searchInput" class="input" placeholder="Rechercher une ressource…" />
+        <select id="filterSelect" class="input select">
+          <option value="all">Toutes les ressources</option>
+          <option value="free">Gratuites uniquement</option>
+          <option value="paid">Payantes uniquement</option>
+        </select>
+        <select id="sortSelect" class="input select">
+          <option value="recent">Plus recentes</option>
+          <option value="rating">Mieux notees</option>
+          <option value="price-asc">Prix croissant</option>
+          <option value="price-desc">Prix decroissant</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="container section">
+      <div id="catalogueGrid" class="asset-grid">
+        <p class="muted">Chargement…</p>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-asset-detail">
+    <section class="container section asset-detail" id="assetDetailRoot">
+      <p class="muted">Chargement…</p>
+    </section>
+  </template>
+
+  <template id="tpl-login">
+    <section class="container section auth-section">
+      <div class="auth-card">
+        <h1 class="page-title">Connexion</h1>
+        <form id="loginForm" class="form" novalidate>
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label class="field">
+            <span>Mot de passe</span>
+            <input type="password" name="password" required autocomplete="current-password" />
+          </label>
+          <p class="form-error" id="loginError"></p>
+          <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+        </form>
+        <p class="auth-switch">Pas encore de compte ? <a href="#/inscription" data-link>Inscrivez-vous</a></p>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-register">
+    <section class="container section auth-section">
+      <div class="auth-card">
+        <h1 class="page-title">Inscription</h1>
+        <form id="registerForm" class="form" novalidate>
+          <label class="field">
+            <span>Nom affiche</span>
+            <input type="text" name="displayName" required minlength="2" maxlength="40" />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label class="field">
+            <span>Mot de passe</span>
+            <input type="password" name="password" required minlength="8" autocomplete="new-password" />
+            <small class="field-hint">8 caracteres minimum.</small>
+          </label>
+          <p class="form-error" id="registerError"></p>
+          <button type="submit" class="btn btn-primary btn-block">Creer mon compte</button>
+        </form>
+        <p class="auth-switch">Deja un compte ? <a href="#/connexion" data-link>Connectez-vous</a></p>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-my-purchases">
+    <section class="container section page-header-section">
+      <h1 class="page-title">Mes achats</h1>
+      <p class="page-subtitle">Retrouvez ici toutes les ressources que vous avez achetees.</p>
+    </section>
+    <section class="container section">
+      <div id="purchasesList" class="asset-grid">
+        <p class="muted">Chargement…</p>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-dashboard">
+    <section class="container section page-header-section">
+      <h1 class="page-title">Dashboard vendeur</h1>
+      <p class="page-subtitle">Vue d'ensemble de votre boutique BlockForge.</p>
+    </section>
+
+    <section class="container section">
+      <div id="dashboardStats" class="stats-grid">
+        <p class="muted">Chargement des statistiques…</p>
+      </div>
+    </section>
+
+    <section class="container section">
+      <div class="dashboard-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="resources" role="tab">Ressources</button>
+        <button class="tab-btn" data-tab="sales" role="tab">Ventes</button>
+        <button class="tab-btn" data-tab="users" role="tab">Utilisateurs</button>
+      </div>
+
+      <div class="tab-panel" data-panel="resources">
+        <div class="panel-header-row">
+          <h2>Gestion des ressources</h2>
+          <button id="newAssetBtn" class="btn btn-primary">+ Nouvelle ressource</button>
+        </div>
+        <div id="dashboardAssetsTable" class="table-wrap">
+          <p class="muted">Chargement…</p>
+        </div>
+      </div>
+
+      <div class="tab-panel hidden" data-panel="sales">
+        <h2>Historique des ventes</h2>
+        <div id="dashboardSalesTable" class="table-wrap">
+          <p class="muted">Chargement…</p>
+        </div>
+      </div>
+
+      <div class="tab-panel hidden" data-panel="users">
+        <h2>Utilisateurs inscrits</h2>
+        <div id="dashboardUsersTable" class="table-wrap">
+          <p class="muted">Chargement…</p>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-not-found">
+    <section class="container section empty-state">
+      <h1 class="page-title">404</h1>
+      <p>Cette page n'existe pas.</p>
+      <a href="#/" data-link class="btn btn-primary">Retour a l'accueil</a>
+    </section>
+  </template>
+
+  <!-- ===================== MODAL : formulaire ressource (creation/edition) ===================== -->
+  <div id="assetModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <button class="modal-close" id="closeAssetModal" aria-label="Fermer">&times;</button>
+      <h2 id="assetModalTitle">Nouvelle ressource</h2>
+      <form id="assetForm" class="form" enctype="multipart/form-data">
+        <input type="hidden" name="assetId" id="assetIdField" />
+        <label class="field">
+          <span>Titre</span>
+          <input type="text" name="title" required maxlength="100" />
+        </label>
+        <label class="field">
+          <span>Description</span>
+          <textarea name="description" required rows="4" maxlength="2000"></textarea>
+        </label>
+        <div class="field-row">
+          <label class="field">
+            <span>Categorie</span>
+            <input type="text" name="category" placeholder="Decor, Script, Vehicule…" />
+          </label>
+          <label class="field">
+            <span>Prix (€) — 0 = gratuit</span>
+            <input type="number" name="priceEuros" min="0" step="0.5" value="0" required />
+          </label>
+        </div>
+        <label class="field">
+          <span>Fichier ressource (.rbxm / .rbxmx) <span id="assetFileRequiredHint">*</span></span>
+          <input type="file" name="assetFile" id="assetFileInput" accept=".rbxm,.rbxmx" />
+        </label>
+        <label class="field">
+          <span>Image miniature (optionnel)</span>
+          <input type="file" name="thumbnail" accept="image/png,image/jpeg,image/webp" />
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" name="published" checked />
+          <span>Publier immediatement</span>
+        </label>
+        <p class="form-error" id="assetFormError"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelAssetForm">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/hero3d.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/router.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
