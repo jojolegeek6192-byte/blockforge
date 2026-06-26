@@ -9,7 +9,9 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
+const bcrypt = require('bcryptjs');
 const { attachUserIfPresent } = require('./middleware/auth');
+const { findUserByEmail, createUser } = require('./db/models');
 
 const authRoutes = require('./routes/authRoutes');
 const assetRoutes = require('./routes/assetRoutes');
@@ -55,7 +57,34 @@ app.get(/^(?!\/api).*/, (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+// Cree automatiquement le compte proprietaire au demarrage si besoin.
+// Necessaire car certains hebergeurs gratuits (ex. Render free tier) ne
+// proposent pas d'acces "Shell" pour lancer manuellement `npm run seed`.
+// Si le compte existe deja (meme email), rien ne se passe : aucun risque
+// de doublon ni d'ecrasement a chaque redemarrage du serveur.
+async function ensureOwnerAccount() {
+  const email = process.env.OWNER_EMAIL;
+  const password = process.env.OWNER_PASSWORD;
+  const displayName = process.env.OWNER_NAME || 'Proprietaire';
+
+  if (!email || !password) {
+    console.warn('[seed] OWNER_EMAIL / OWNER_PASSWORD non definis : aucun compte proprietaire cree automatiquement.');
+    return;
+  }
+
+  const existing = findUserByEmail(email);
+  if (existing) {
+    console.log(`[seed] Compte proprietaire deja present (${email}).`);
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = createUser({ email, passwordHash, displayName, isOwner: true });
+  console.log(`[seed] Compte proprietaire cree automatiquement : ${user.email}`);
+}
+
+app.listen(PORT, async () => {
   console.log(`\n  Boutique de ressources Roblox - serveur demarre`);
   console.log(`  -> http://localhost:${PORT}\n`);
+  await ensureOwnerAccount();
 });
