@@ -1,0 +1,10 @@
+node_modules/
+.env
+server/db/data.json
+server/uploads/assets/*
+server/uploads/thumbnails/*
+!server/uploads/assets/.gitkeep
+!server/uploads/thumbnails/.gitkeep
+.DS_Store
+npm-debug.log*
+*.log
